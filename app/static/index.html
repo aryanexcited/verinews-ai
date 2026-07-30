@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fake News Detector</title>
+    <title>VeriNews AI</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -29,6 +29,12 @@
             color: #888;
             margin-bottom: 32px;
             font-size: 0.95rem;
+        }
+        .subtitle-description {
+            color: #b0b0b0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 24px;
         }
         textarea {
             width: 100%;
@@ -163,8 +169,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔍 Fake News Detector</h1>
-        <p class="subtitle">Powered by DistilBERT (97.4% accuracy) + TF-IDF Baseline</p>
+        <h1>VeriNews AI</h1>
+        <p class="subtitle">AI-powered News Credibility Analysis</p>
+
+        <p class="subtitle-description">
+            Analyze news headlines and articles using transformer-based language
+            models and explainable credibility signals.
+        </p>
 
         <textarea id="newsInput" placeholder="Paste a news article or headline here..."></textarea>
         <button id="detectBtn" onclick="detect()">Detect</button>

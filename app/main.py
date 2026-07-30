@@ -10,8 +10,8 @@ from pydantic import BaseModel
 from app.predictor import predict_baseline
 
 app = FastAPI(
-    title="Fake-news-detector",
-    version="1.0"
+    title="VeriNews AI",
+    version="1.0.0"
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

@@ -1,4 +1,4 @@
-# Fake News Detector
+# VeriNews AI
 
 An end-to-end NLP project that classifies news articles as REAL or FAKE. The public web app uses a lightweight FastAPI frontend on Render and calls a Hugging Face Space for DistilBERT inference.
 
