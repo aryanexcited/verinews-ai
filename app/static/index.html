@@ -1,276 +1,255 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VeriNews AI</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: #0f0f0f;
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            width: 100%;
-        }
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-        .subtitle {
-            color: #888;
-            margin-bottom: 32px;
-            font-size: 0.95rem;
-        }
-        .subtitle-description {
-            color: #b0b0b0;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 24px;
-        }
-        textarea {
-            width: 100%;
-            height: 200px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 16px;
-            color: #fff;
-            font-size: 0.95rem;
-            resize: vertical;
-            outline: none;
-            transition: border 0.2s;
-        }
-        textarea:focus { border-color: #555; }
-        button {
-            margin-top: 16px;
-            width: 100%;
-            padding: 14px;
-            background: #fff;
-            color: #000;
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        button:hover { opacity: 0.85; }
-        button:disabled { opacity: 0.4; cursor: not-allowed; }
-        .result {
-            margin-top: 24px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 12px;
-            padding: 24px;
-            display: none;
-        }
-        .verdict {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .verdict.fake { color: #ff4444; }
-        .verdict.real { color: #44ff88; }
-        .confidence {
-            font-size: 0.9rem;
-            color: #888;
-            margin-bottom: 20px;
-        }
-        .bar-container {
-            background: #333;
-            border-radius: 999px;
-            height: 8px;
-            margin-bottom: 24px;
-        }
-        .bar {
-            height: 8px;
-            border-radius: 999px;
-            transition: width 0.6s ease;
-        }
-        .bar.fake { background: #ff4444; }
-        .bar.real { background: #44ff88; }
-        .models {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .model-card {
-            background: #222;
-            border-radius: 8px;
-            padding: 14px;
-        }
-        .model-name {
-            font-size: 0.75rem;
-            color: #888;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .model-verdict {
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        .model-verdict.fake { color: #ff4444; }
-        .model-verdict.real { color: #44ff88; }
-        .analysis {
-            margin-top: 20px;
-            padding-top: 18px;
-            border-top: 1px solid #2e2e2e;
-        }
-        .analysis-title {
-            font-size: 0.8rem;
-            color: #9d9d9d;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 10px;
-        }
-        .analysis-copy {
-            color: #d7d7d7;
-            font-size: 0.95rem;
-            line-height: 1.5;
-            margin-bottom: 14px;
-        }
-        .signals {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .signal-chip {
-            background: #252525;
-            border: 1px solid #353535;
-            border-radius: 999px;
-            padding: 8px 12px;
-            font-size: 0.84rem;
-            color: #eaeaea;
-        }
-        .note {
-            color: #9d9d9d;
-            font-size: 0.88rem;
-            line-height: 1.5;
-        }
-        .error {
-            margin-top: 16px;
-            color: #ff4444;
-            font-size: 0.9rem;
-            display: none;
-        }
-        .loading { display: none; text-align: center; margin-top: 16px; color: #888; }
-    </style>
+    <title>VeriNews AI | AI-powered News Credibility Analysis</title>
+
+    <link rel="stylesheet" href="./css/style.css">
 </head>
+
 <body>
+
     <div class="container">
-        <h1>VeriNews AI</h1>
-        <p class="subtitle">AI-powered News Credibility Analysis</p>
 
-        <p class="subtitle-description">
-            Analyze news headlines and articles using transformer-based language
-            models and explainable credibility signals.
-        </p>
+        <!-- Hero -->
+        <header class="hero">
+            <h1>VeriNews AI</h1>
 
-        <textarea id="newsInput" placeholder="Paste a news article or headline here..."></textarea>
-        <button id="detectBtn" onclick="detect()">Detect</button>
+            <p class="subtitle">
+                Know what to trust.
+            </p>
 
-        <p class="loading" id="loading">Analyzing...</p>
-        <p class="error" id="error"></p>
+            <p class="hero-description">
+                Analyze headlines and articles using modern AI models and
+                explainable credibility signals.
+            </p>
+        </header>
 
-        <div class="result" id="result">
-            <div class="verdict" id="verdict"></div>
-            <div class="confidence" id="confidence"></div>
-            <div class="bar-container">
-                <div class="bar" id="bar"></div>
+        <!-- Input -->
+        <section class="input-card">
+
+            <textarea id="newsInput" placeholder="Paste a news headline, article excerpt, or full article...
+
+Example: NASA successfully completes another Artemis mission test ahead of its planned lunar launch."></textarea>
+
+            <div class="text-stats">
+
+                <span id="wordCount">
+                    0 Words
+                </span>
+
+                <span>•</span>
+
+                <span id="charCount">
+                    0 Characters
+                </span>
+
+                <span>•</span>
+
+                <span id="readingTime">
+                    0 sec
+                </span>
+
             </div>
-            <div class="models">
-                <div class="model-card">
-                    <div class="model-name">DistilBERT</div>
-                    <div class="model-verdict" id="bertVerdict"></div>
+
+            <div class="button-group">
+
+                <button id="detectBtn" onclick="detect()">
+
+                    Analyze News
+
+                </button>
+
+                <button id="clearBtn" type="button">
+
+                    Clear
+
+                </button>
+
+            </div>
+
+            <div id="loading" class="loading">
+
+                <div class="spinner"></div>
+
+                <span id="loadingText">
+
+                    Preparing analysis...
+
+                </span>
+
+            </div>
+
+            <p id="error" class="error">
+
+            </p>
+
+        </section>
+
+        <!-- Result -->
+
+        <section id="result" class="result">
+            <div class="report-meta">
+
+                <span id="analysisTime">
+                    Completed in 0.00s
+                </span>
+
+                <span>•</span>
+
+                <span id="analysisDate">
+                    --
+                </span>
+
+                <button id="copyReportBtn" class="copy-btn">
+                    Copy Report
+                </button>
+
+            </div>
+
+            <div class="result-header">
+
+                <div>
+
+                    <p class="section-label">
+
+                        Prediction
+
+                    </p>
+
+                    <div class="prediction-container">
+
+                        <div id="predictionIcon" class="prediction-icon">
+
+                        </div>
+
+                        <div>
+
+                            <div id="verdict" class="prediction-badge">
+
+                            </div>
+
+                            <p id="predictionDescription" class="prediction-description">
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
                 </div>
-                <div class="model-card">
-                    <div class="model-name">TF-IDF Baseline</div>
-                    <div class="model-verdict" id="baselineVerdict"></div>
-                </div>
+
+                <<div class="confidence-card">
+
+                    <p class="section-label">
+                        Model Confidence
+                    </p>
+
+                    <div class="confidence-bar">
+
+                        <div id="confidenceFill" class="confidence-fill">
+                        </div>
+
+                    </div>
+
+                    <h2 id="confidence"></h2>
+
             </div>
-            <div class="analysis">
-                <div class="analysis-title">Why It Was Flagged</div>
-                <p class="analysis-copy" id="whyFlagged"></p>
-                <div class="signals" id="riskSignals"></div>
-                <p class="note" id="factCheckNote"></p>
-            </div>
-        </div>
+
     </div>
 
-    <script>
-        async function detect() {
-            const text = document.getElementById('newsInput').value.trim();
-            if (!text) return;
+    <div class="divider"></div>
 
-            const btn = document.getElementById('detectBtn');
-            const loading = document.getElementById('loading');
-            const error = document.getElementById('error');
-            const result = document.getElementById('result');
+    <div class="section">
 
-            btn.disabled = true;
-            loading.style.display = 'block';
-            error.style.display = 'none';
-            result.style.display = 'none';
+        <h3>Model Consensus</h3>
 
-            try {
-                const response = await fetch('/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
+        <div class="consensus-grid">
 
-                const data = await response.json();
+            <div class="model-card">
 
-                const prediction = data.distilbert.prediction;
-                const confidence = parseFloat(data.distilbert.confidence);
+                <p class="model-name">DistilBERT</p>
 
-                document.getElementById('verdict').textContent = prediction === 'FAKE' ? '🚨 FAKE NEWS' : '✅ REAL NEWS';
-                document.getElementById('verdict').className = `verdict ${prediction.toLowerCase()}`;
-                document.getElementById('confidence').textContent = `DistilBERT confidence: ${data.distilbert.confidence}`;
+                <h4 id="bertVerdict"></h4>
 
-                const bar = document.getElementById('bar');
-                bar.style.width = `${confidence}%`;
-                bar.className = `bar ${prediction.toLowerCase()}`;
+            </div>
 
-                document.getElementById('bertVerdict').textContent = prediction;
-                document.getElementById('bertVerdict').className = `model-verdict ${prediction.toLowerCase()}`;
+            <div class="model-card">
 
-                const baseline = data.baseline.prediction;
-                document.getElementById('baselineVerdict').textContent = baseline;
-                document.getElementById('baselineVerdict').className = `model-verdict ${baseline.toLowerCase()}`;
+                <p class="model-name">Classical ML</p>
 
-                document.getElementById('whyFlagged').textContent = data.analysis.why_flagged;
-                document.getElementById('factCheckNote').textContent = data.analysis.fact_check_note;
+                <h4 id="baselineVerdict"></h4>
 
-                const signalsContainer = document.getElementById('riskSignals');
-                signalsContainer.innerHTML = '';
-                data.analysis.risk_signals.forEach((signal) => {
-                    const chip = document.createElement('span');
-                    chip.className = 'signal-chip';
-                    chip.textContent = signal;
-                    signalsContainer.appendChild(chip);
-                });
+            </div>
 
-                result.style.display = 'block';
-            } catch (err) {
-                error.textContent = 'Something went wrong. Make sure the API is running.';
-                error.style.display = 'block';
-            } finally {
-                btn.disabled = false;
-                loading.style.display = 'none';
-            }
-        }
-    </script>
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h3>AI Summary</h3>
+
+        <div class="summary-card">
+
+            <div class="summary-icon">
+                🤖
+            </div>
+
+            <p id="whyFlagged"></p>
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h3>
+
+            Risk Signals
+
+        </h3>
+
+        <div id="riskSignals" class="signals">
+
+        </div>
+
+    </div>
+
+    <div class="section">
+
+        <h3>Recommendation</h3>
+
+        <div class="recommendation-card">
+
+            <span class="recommendation-icon">
+                💡
+            </span>
+
+            <p id="factCheckNote"></p>
+
+        </div>
+
+    </div>
+
+    </section>
+
+    <footer>
+
+        <p>Built with ❤️ using FastAPI, DistilBERT & Scikit-learn</p>
+
+        <a href="https://github.com/aryanexcited/verinews-ai" target="_blank">
+            GitHub Repository
+        </a>
+
+    </footer>
+
+    </div>
+
+    <script src="./js/app.js"></script>
+
 </body>
+
 </html>
