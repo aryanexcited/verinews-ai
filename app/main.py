@@ -3,6 +3,7 @@ import os
 import socket
 import urllib.error
 import urllib.request
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -11,12 +12,15 @@ from pydantic import BaseModel
 
 from app.predictor import predict_baseline
 
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+INDEX_PATH = STATIC_DIR / "index.html"
+
 app = FastAPI(
     title="VeriNews AI",
     version="1.0.0"
 )
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 class NewsInput(BaseModel):
     text: str
@@ -133,7 +137,7 @@ def remote_predict(text: str):
 
 @app.get("/")
 def root():
-    return FileResponse("app/static/index.html")
+    return FileResponse(INDEX_PATH)
 
 @app.post("/predict")
 def predict_news(input: NewsInput):

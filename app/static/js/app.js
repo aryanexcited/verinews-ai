@@ -131,6 +131,8 @@ async function detect() {
 
     }
 
+    const startTime = performance.now();
+
     elements.detectBtn.disabled = true;
     elements.detectBtn.textContent = "Analyzing...";
 
