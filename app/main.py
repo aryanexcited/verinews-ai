@@ -1,5 +1,7 @@
 import json
 import os
+import socket
+import urllib.error
 import urllib.request
 
 from fastapi import FastAPI, HTTPException
@@ -135,4 +137,23 @@ def root():
 
 @app.post("/predict")
 def predict_news(input: NewsInput):
-    return remote_predict(input.text)
+    try:
+        return remote_predict(input.text)
+    except HTTPException:
+        raise
+    except urllib.error.HTTPError as error:
+        status_code = 503 if error.code == 429 or error.code >= 500 else 502
+        raise HTTPException(
+            status_code=status_code,
+            detail=f"Prediction provider returned HTTP {error.code}. Please try again shortly.",
+        ) from error
+    except (urllib.error.URLError, socket.timeout, TimeoutError) as error:
+        raise HTTPException(
+            status_code=503,
+            detail="Prediction provider is temporarily unavailable. Please try again shortly.",
+        ) from error
+    except Exception as error:
+        raise HTTPException(
+            status_code=502,
+            detail="The prediction could not be completed. Please try again.",
+        ) from error

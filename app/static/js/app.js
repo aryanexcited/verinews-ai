@@ -162,7 +162,22 @@ async function detect() {
 
         if (!response.ok) {
 
-            throw new Error("API Error");
+            let message = `Request failed (${response.status}).`;
+
+            try {
+
+                const errorData = await response.json();
+                message = errorData.detail || message;
+
+            }
+
+            catch (_) {
+
+                // Keep the status-based message when the response is not JSON.
+
+            }
+
+            throw new Error(message);
 
         }
 
@@ -188,7 +203,7 @@ async function detect() {
         console.error(err);
 
         elements.error.textContent =
-            "Unable to analyze the article. Please try again.";
+            `Unable to analyze the article. ${err.message}`;
 
         elements.error.style.display = "block";
 
