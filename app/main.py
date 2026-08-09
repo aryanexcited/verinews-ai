@@ -8,7 +8,9 @@ from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+
+from typing import Literal
+from pydantic import BaseModel, Field
 
 from app.predictor import predict_baseline
 
@@ -23,8 +25,12 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 class NewsInput(BaseModel):
-    text: str
-
+    text: str = Field(
+        ...,
+        min_length=3,
+        max_length=10000,
+        description="News article or headline to analyze."
+    )
 
 SPACE_API_URL = os.getenv(
     "SPACE_API_URL",
@@ -125,6 +131,19 @@ def remote_predict(text: str):
             if not payload:
                 break
             distilbert_result = payload[0]
+
+            confidence = distilbert_result.get("confidence")
+
+            if isinstance(confidence, str):
+                confidence = confidence.replace("%", "").strip()
+
+            try:
+                confidence = float(confidence)
+            except (TypeError, ValueError):
+                confidence = None
+
+            distilbert_result["confidence"] = confidence
+
             baseline_result = predict_baseline(text)
             return {
                 "text_preview": text[:100] + "..." if len(text) > 100 else text,
@@ -139,8 +158,27 @@ def remote_predict(text: str):
 def root():
     return FileResponse(INDEX_PATH)
 
-@app.post("/predict")
-def predict_news(input: NewsInput):
+class ModelPrediction(BaseModel):
+    prediction: Literal["FAKE", "REAL"]
+    confidence: float | None = Field(
+        default=None,
+        ge=0,
+        le=100
+    )
+class AnalysisResult(BaseModel):
+    risk_signals: list[str]
+    why_flagged: str
+    fact_check_note: str
+
+
+class PredictionResponse(BaseModel):
+    text_preview: str
+    distilbert: ModelPrediction
+    baseline: ModelPrediction
+    analysis: AnalysisResult
+
+@app.post("/predict", response_model=PredictionResponse,summary="Analyze news credibility", description="Analyzes submitted news text using DistilBERT and a TF-IDF baseline.")
+async def predict_news(input: NewsInput):
     try:
         return remote_predict(input.text)
     except HTTPException:
@@ -156,8 +194,8 @@ def predict_news(input: NewsInput):
             status_code=503,
             detail="Prediction provider is temporarily unavailable. Please try again shortly.",
         ) from error
-    except Exception as error:
+    except Exception as exc:
         raise HTTPException(
-            status_code=502,
-            detail="The prediction could not be completed. Please try again.",
-        ) from error
+            status_code=500,
+            detail="Prediction service temporary unavailable.",
+        ) from exc
