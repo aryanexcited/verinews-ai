@@ -3,8 +3,11 @@ import os
 import socket
 import urllib.error
 import urllib.request
-from pathlib import Path
+import logging
+import time
+import uuid
 
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +17,13 @@ from pydantic import BaseModel, Field
 
 from app.predictor import predict_baseline
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
+
+logger = logging.getLogger("verinews")
+
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 INDEX_PATH = STATIC_DIR / "index.html"
 
@@ -21,6 +31,30 @@ app = FastAPI(
     title="VeriNews AI",
     version="1.0.0"
 )
+
+@app.middleware("http")
+async def request_logging_middleware(request, call_next):
+    request_id = str(uuid.uuid4())
+    start_time = time.perf_counter()
+
+    response = None
+
+    try:
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
+    finally:
+        duration = time.perf_counter() - start_time
+
+        logger.info(
+            "request_id=%s method=%s path=%s status=%s duration=%.3fs",
+            request_id,
+            request.method,
+            request.url.path,
+            getattr(response, "status_code", "error"),
+            duration,
+        )
 
 class HealthResponse(BaseModel):
     status: str
