@@ -22,6 +22,26 @@ app = FastAPI(
     version="1.0.0"
 )
 
+class HealthResponse(BaseModel):
+    status: str
+    service: str
+    baseline_model: str
+    prediction_provider: str
+
+@app.get(
+    "/health",
+    response_model=HealthResponse,
+    summary="Health check",
+    description="Returns the current API health status."
+)
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": "VeriNews AI",
+        "baseline_model": "loaded",
+        "prediction_provider": "configured"
+    }
+
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 class NewsInput(BaseModel):
