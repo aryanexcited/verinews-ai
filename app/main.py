@@ -8,7 +8,7 @@ import time
 import uuid
 
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -35,6 +35,7 @@ app = FastAPI(
 @app.middleware("http")
 async def request_logging_middleware(request, call_next):
     request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
     start_time = time.perf_counter()
 
     response = None
@@ -232,7 +233,7 @@ class PredictionResponse(BaseModel):
     analysis: AnalysisResult
 
 @app.post("/predict", response_model=PredictionResponse,summary="Analyze news credibility", description="Analyzes submitted news text using DistilBERT and a TF-IDF baseline.")
-async def predict_news(input: NewsInput):
+async def predict_news(request: Request, input: NewsInput):
     try:
         return remote_predict(input.text)
     except HTTPException:
