@@ -1,0 +1,21 @@
+
+VeriNews AI Report
+
+Prediction:
+Likely Fake
+
+Confidence:
+98.0%
+
+Summary:
+The model flagged patterns often associated with misleading content, especially around tone, sourcing, or exaggerated framing.
+
+Recommendation:
+This is an automated prediction. Important claims should still be verified with trusted reporting or primary sources.
+
+Risk Signals:
+•
+Does not clearly point to a source or supporting reference
+
+Generated:
+31 Jul 2026, 11:38 pm

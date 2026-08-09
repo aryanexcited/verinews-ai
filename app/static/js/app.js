@@ -16,6 +16,8 @@ const elements = {
     riskSignals: document.getElementById("riskSignals"),
     factCheckNote: document.getElementById("factCheckNote"),
 
+    verificationResults: document.getElementById("verificationResults"),
+
     wordCount: document.getElementById("wordCount"),
     charCount: document.getElementById("charCount"),
     readingTime: document.getElementById("readingTime")
@@ -228,6 +230,128 @@ async function detect() {
 // Render
 // ---------------------------
 
+function renderVerification(verification) {
+
+    elements.verificationResults.innerHTML = "";
+
+    console.log("renderVerification received:", verification);
+
+    if (!Array.isArray(verification)) {
+        console.error("Expected verification array, got:", verification);
+        return;
+    }
+
+    verification.forEach(item => {
+
+        const card = document.createElement("div");
+        card.className = "verification-card";
+
+        const status = item.status || "UNVERIFIED";
+
+        const evidence = Array.isArray(item.evidence)
+            ? item.evidence
+            : [];
+
+        let evidenceHTML = "";
+
+        if (evidence.length === 0) {
+
+            evidenceHTML = `
+                <div class="verification-empty">
+                    No relevant evidence was found.
+                </div>
+            `;
+
+        } else {
+
+            evidenceHTML = evidence.map(source => `
+                <article class="evidence-item">
+
+                    <div class="evidence-header">
+
+                        <span class="evidence-source">
+                            ${source.source || "Unknown source"}
+                        </span>
+
+                        <span class="evidence-score">
+                            ${source.relevance_score ?? 0}% relevance
+                        </span>
+
+                    </div>
+
+                    <h4>
+                        ${source.title || "Untitled source"}
+                    </h4>
+
+                    <p>
+                        ${source.description || "No description available."}
+                    </p>
+
+                    ${source.url
+                    ? `
+                                <a
+                                    href="${source.url}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Read source →
+                                </a>
+                            `
+                    : ""
+                }
+
+                </article>
+            `).join("");
+        }
+
+        card.innerHTML = `
+
+            <div class="verification-header">
+
+                <div>
+
+                    <p class="verification-label">
+                        Claim
+                    </p>
+
+                    <p class="verification-claim">
+                        ${item.claim || "Unknown claim"}
+                    </p>
+
+                </div>
+
+                <span class="verification-status ${status.toLowerCase()}">
+                    ${status}
+                </span>
+
+            </div>
+
+            <div class="verification-explanation">
+
+                ${status === "SUPPORTS"
+                ? "Relevant evidence was found that supports this claim."
+                : status === "CONTRADICTS"
+                    ? "Relevant evidence was found that conflicts with this claim."
+                    : status === "RELATED"
+                        ? "Related evidence was found, but it does not directly verify this claim."
+                        : "No sufficiently relevant evidence was found to verify this claim."
+            }
+
+            </div>
+
+            <h4 class="evidence-heading">
+                ${evidence.length ? "Related Evidence" : "Evidence Search"}
+            </h4>
+
+            <div class="evidence-list">
+                ${evidenceHTML}
+            </div>
+        `;
+
+        elements.verificationResults.appendChild(card);
+    });
+}
+
 function renderPrediction(data) {
 
     const prediction = data.distilbert.prediction;
@@ -286,6 +410,14 @@ function renderPrediction(data) {
     elements.factCheckNote.textContent =
         data.analysis.fact_check_note;
 
+    renderVerification(
+        Array.isArray(data.verification)
+            ? data.verification
+            : data.verification
+                ? [data.verification]
+                : []
+    );
+
     elements.riskSignals.innerHTML = "";
 
     const signalIcons = {
@@ -315,6 +447,10 @@ function renderPrediction(data) {
         `;
         elements.riskSignals.appendChild(chip);
     });
+
+    if (data.verification) {
+        renderVerification(data.verification);
+    }
 
     elements.result.style.display = "block";
 

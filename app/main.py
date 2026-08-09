@@ -16,6 +16,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.predictor import predict_baseline
+from app.verifier import extract_claims, build_claim_results, verify_claim 
 
 logging.basicConfig(
     level=logging.INFO,
@@ -200,11 +201,21 @@ def remote_predict(text: str):
             distilbert_result["confidence"] = confidence
 
             baseline_result = predict_baseline(text)
+            claims = extract_claims(text)
+
             return {
                 "text_preview": text[:100] + "..." if len(text) > 100 else text,
                 "distilbert": distilbert_result,
                 "baseline": baseline_result,
-                "analysis": analyze_text_signals(text, distilbert_result["prediction"]),
+                "analysis": analyze_text_signals(
+                    text,
+                    distilbert_result["prediction"],
+                ),
+                "claims": claims,
+                "verification": [
+                    verify_claim(claim)
+                    for claim in claims
+                ],
             }
 
     raise HTTPException(status_code=502, detail="Invalid response received from Space.")
@@ -231,6 +242,46 @@ class PredictionResponse(BaseModel):
     distilbert: ModelPrediction
     baseline: ModelPrediction
     analysis: AnalysisResult
+
+class ClaimResult(BaseModel):
+    claim: str
+    status: str
+    evidence: list[dict]
+
+
+class EvidenceItem(BaseModel):
+    title: str
+    description: str
+    url: str
+    source: str
+    published_at: str
+    relevance_score: float
+    classification: Literal[
+        "SUPPORTS",
+        "CONTRADICTS",
+        "RELATED",
+        "UNVERIFIED",
+    ]
+
+
+class VerificationResult(BaseModel):
+    claim: str
+    status: Literal[
+        "SUPPORTED",
+        "CONTRADICTED",
+        "RELATED",
+        "UNVERIFIED",
+    ]
+    evidence: list[EvidenceItem]
+
+
+class PredictionResponse(BaseModel):
+    text_preview: str
+    distilbert: ModelPrediction
+    baseline: ModelPrediction
+    analysis: AnalysisResult
+    claims: list[str]
+    verification: list[VerificationResult] 
 
 @app.post("/predict", response_model=PredictionResponse,summary="Analyze news credibility", description="Analyzes submitted news text using DistilBERT and a TF-IDF baseline.")
 async def predict_news(request: Request, input: NewsInput):
