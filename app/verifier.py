@@ -47,6 +47,10 @@ def search_evidence(claim: str) -> list[dict]:
         raise RuntimeError("GNews API key is not configured.")
 
     search_query = build_search_query(claim)
+
+    print("GNEWS CLAIM:", claim)
+    print("GNEWS QUERY:", search_query)
+
     query = urllib.parse.quote_plus(search_query)
 
     url = (
