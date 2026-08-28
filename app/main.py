@@ -301,7 +301,8 @@ async def predict_news(request: Request, input: NewsInput):
             detail="Prediction provider is temporarily unavailable. Please try again shortly.",
         ) from error
     except Exception as exc:
+        logger.exception("Prediction failed")
         raise HTTPException(
             status_code=500,
-            detail="Prediction service temporary unavailable.",
+            detail=f"Prediction service error: {type(exc).__name__}: {exc}",
         ) from exc
