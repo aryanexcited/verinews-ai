@@ -67,6 +67,8 @@ def search_evidence(claim: str) -> list[dict]:
 
     payload = json.loads(data)
 
+    print("GNEWS RESULTS:", payload.get("articles", []))
+
     results = []
 
     for article in payload.get("articles", []):
