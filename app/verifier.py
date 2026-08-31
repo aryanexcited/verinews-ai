@@ -44,14 +44,7 @@ def build_claim_results(claims: list[str]) -> list[dict]:
 def search_evidence(claim: str) -> list[dict]:
     from gradio_client import Client
 
-    verisearch_space = os.getenv(
-        "VERISEARCH_SPACE",
-        "RYancoder/verisearch-api"
-    )
-
-    print("VERISEARCH SPACE:", verisearch_space)
-
-    client = Client(verisearch_space)
+    client = Client("RYancoder/verisearch-api")
 
     results = client.predict(
         query=claim,
