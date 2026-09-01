@@ -24,17 +24,11 @@ const elements = {
 };
 
 const loadingSteps = [
-
     "Preparing analysis...",
-
     "Preprocessing article...",
-
     "Running DistilBERT model...",
-
     "Comparing with Classical ML...",
-
     "Generating credibility report..."
-
 ];
 
 let loadingInterval;
@@ -46,7 +40,6 @@ let loadingInterval;
 elements.textarea.addEventListener("input", updateStats);
 
 function updateStats() {
-
     const text = elements.textarea.value.trim();
 
     const words = text ? text.split(/\s+/).length : 0;
@@ -56,22 +49,22 @@ function updateStats() {
 
     if (words === 0) {
         readTime = "0 sec";
-    }
-    else if (words < 200) {
+    } else if (words < 200) {
         readTime = `${Math.ceil(words / 200 * 60)} sec`;
-    }
-    else {
+    } else {
         readTime = `${Math.ceil(words / 200)} min`;
     }
 
     elements.wordCount.textContent = `${words} Words`;
     elements.charCount.textContent = `${chars} Characters`;
     elements.readingTime.textContent = readTime;
-
 }
 
-function startLoading() {
+// ---------------------------
+// Loading
+// ---------------------------
 
+function startLoading() {
     let step = 0;
 
     elements.loading.style.display = "flex";
@@ -80,26 +73,18 @@ function startLoading() {
         loadingSteps[0];
 
     loadingInterval = setInterval(() => {
-
         step++;
 
         if (step < loadingSteps.length) {
-
             document.getElementById("loadingText").textContent =
                 loadingSteps[step];
-
         }
-
     }, 700);
-
 }
 
 function stopLoading() {
-
     clearInterval(loadingInterval);
-
     elements.loading.style.display = "none";
-
 }
 
 // ---------------------------
@@ -107,14 +92,12 @@ function stopLoading() {
 // ---------------------------
 
 elements.clearBtn.addEventListener("click", () => {
-
     elements.textarea.value = "";
 
     updateStats();
 
     elements.result.style.display = "none";
     elements.error.style.display = "none";
-
 });
 
 // ---------------------------
@@ -122,15 +105,11 @@ elements.clearBtn.addEventListener("click", () => {
 // ---------------------------
 
 async function detect() {
-
     const text = elements.textarea.value.trim();
 
     if (!text) {
-
         alert("Please paste a news article first.");
-
         return;
-
     }
 
     const startTime = performance.now();
@@ -145,44 +124,27 @@ async function detect() {
     elements.result.style.display = "none";
 
     try {
-
         const response = await fetch("/predict", {
-
             method: "POST",
-
             headers: {
-
                 "Content-Type": "application/json"
-
             },
-
             body: JSON.stringify({
-
                 text: text
-
             })
-
         });
 
         if (!response.ok) {
-
             let message = `Request failed (${response.status}).`;
 
             try {
-
                 const errorData = await response.json();
                 message = errorData.detail || message;
-
-            }
-
-            catch (_) {
-
+            } catch (_) {
                 // Keep the status-based message when the response is not JSON.
-
             }
 
             throw new Error(message);
-
         }
 
         const data = await response.json();
@@ -199,42 +161,58 @@ async function detect() {
             });
 
         renderPrediction(data);
-
     }
 
     catch (err) {
-
         console.error(err);
 
         elements.error.textContent =
             `Unable to analyze the article. ${err.message}`;
 
         elements.error.style.display = "block";
-
     }
 
     finally {
-
         elements.detectBtn.disabled = false;
         elements.detectBtn.textContent = "Analyze News";
 
         stopLoading();
 
         document.body.style.cursor = "default";
-
     }
-
 }
 
 // ---------------------------
-// Render
+// Verification
 // ---------------------------
 
+function getSourceName(source) {
+    if (source.source && source.source.trim()) {
+        return source.source;
+    }
+
+    if (source.url) {
+        try {
+            const hostname = new URL(source.url).hostname
+                .replace(/^www\./, "");
+
+            const knownSources = {
+                "bbc.com": "BBC",
+                "nasa.gov": "NASA",
+                "mnspacegrant.org": "Minnesota Space Grant Consortium"
+            };
+
+            return knownSources[hostname] || hostname;
+        } catch (_) {
+            // Fall through to generic source name.
+        }
+    }
+
+    return "Unknown source";
+}
+
 function renderVerification(verification) {
-
     elements.verificationResults.innerHTML = "";
-
-    console.log("renderVerification received:", verification);
 
     if (!Array.isArray(verification)) {
         console.error("Expected verification array, got:", verification);
@@ -242,7 +220,6 @@ function renderVerification(verification) {
     }
 
     verification.forEach(item => {
-
         const card = document.createElement("div");
         card.className = "verification-card";
 
@@ -255,22 +232,19 @@ function renderVerification(verification) {
         let evidenceHTML = "";
 
         if (evidence.length === 0) {
-
             evidenceHTML = `
                 <div class="verification-empty">
                     No relevant evidence was found.
                 </div>
             `;
-
         } else {
-
             evidenceHTML = evidence.map(source => `
                 <article class="evidence-item">
 
                     <div class="evidence-header">
 
                         <span class="evidence-source">
-                            ${source.source || "Unknown source"}
+                            ${getSourceName(source)}
                         </span>
 
                         <span class="evidence-score">
@@ -304,8 +278,25 @@ function renderVerification(verification) {
             `).join("");
         }
 
-        card.innerHTML = `
+        let explanation;
 
+        if (status === "SUPPORTED") {
+            explanation =
+                "Relevant evidence was found that supports this claim.";
+        } else if (status === "CONTRADICTED") {
+            explanation =
+                "Relevant evidence was found that conflicts with this claim.";
+        } else if (status === "RELATED") {
+            explanation =
+                "Related evidence was found, but it does not directly verify this claim.";
+        } else {
+            explanation =
+                evidence.length
+                    ? "Evidence was found, but it was not sufficient to verify this claim."
+                    : "No sufficiently relevant evidence was found to verify this claim.";
+        }
+
+        card.innerHTML = `
             <div class="verification-header">
 
                 <div>
@@ -327,16 +318,7 @@ function renderVerification(verification) {
             </div>
 
             <div class="verification-explanation">
-
-                ${status === "SUPPORTS"
-                ? "Relevant evidence was found that supports this claim."
-                : status === "CONTRADICTS"
-                    ? "Relevant evidence was found that conflicts with this claim."
-                    : status === "RELATED"
-                        ? "Related evidence was found, but it does not directly verify this claim."
-                        : "No sufficiently relevant evidence was found to verify this claim."
-            }
-
+                ${explanation}
             </div>
 
             <h4 class="evidence-heading">
@@ -352,8 +334,11 @@ function renderVerification(verification) {
     });
 }
 
-function renderPrediction(data) {
+// ---------------------------
+// Prediction
+// ---------------------------
 
+function renderPrediction(data) {
     const prediction = data.distilbert.prediction;
     const confidence = parseFloat(data.distilbert.confidence);
 
@@ -364,13 +349,14 @@ function renderPrediction(data) {
         elements.verdict.textContent = "Likely Fake";
         icon.innerHTML = "⚠";
         icon.className = "prediction-icon fake";
+
         description.textContent =
             "This article contains multiple indicators commonly associated with misinformation.";
-    }
-    else {
+    } else {
         elements.verdict.textContent = "Likely Credible";
         icon.innerHTML = "✓";
         icon.className = "prediction-icon real";
+
         description.textContent =
             "No major misinformation patterns were detected in the submitted article.";
     }
@@ -382,10 +368,11 @@ function renderPrediction(data) {
         `${confidence.toFixed(1)}%`;
 
     const fill = document.getElementById("confidenceFill");
+
     fill.style.width = "0%";
+
     setTimeout(() => {
-        fill.style.width =
-            `${confidence}%`;
+        fill.style.width = `${confidence}%`;
     }, 100);
 
     elements.bertVerdict.textContent =
@@ -410,14 +397,6 @@ function renderPrediction(data) {
     elements.factCheckNote.textContent =
         data.analysis.fact_check_note;
 
-    renderVerification(
-        Array.isArray(data.verification)
-            ? data.verification
-            : data.verification
-                ? [data.verification]
-                : []
-    );
-
     elements.riskSignals.innerHTML = "";
 
     const signalIcons = {
@@ -435,31 +414,40 @@ function renderPrediction(data) {
     if (data.analysis.risk_signals.length === 0) {
         elements.riskSignals.innerHTML =
             `<div class="signal-chip">✅ No significant risk signals detected</div>`;
-        return;
+    } else {
+        data.analysis.risk_signals.forEach(signal => {
+            const chip = document.createElement("div");
+
+            chip.className = "signal-chip";
+
+            chip.innerHTML = `
+                <span>${signalIcons[signal] || "•"}</span>
+                <span>${signal}</span>
+            `;
+
+            elements.riskSignals.appendChild(chip);
+        });
     }
 
-    data.analysis.risk_signals.forEach(signal => {
-        const chip = document.createElement("div");
-        chip.className = "signal-chip";
-        chip.innerHTML = `
-            <span>${signalIcons[signal] || "•"}</span>
-            <span>${signal}</span>
-        `;
-        elements.riskSignals.appendChild(chip);
-    });
-
-    if (data.verification) {
-        renderVerification(data.verification);
-    }
+    // Render verification once.
+    renderVerification(
+        Array.isArray(data.verification)
+            ? data.verification
+            : data.verification
+                ? [data.verification]
+                : []
+    );
 
     elements.result.style.display = "block";
-
 }
 
 updateStats();
 
-document.getElementById("copyReportBtn").addEventListener("click", async () => {
+// ---------------------------
+// Copy report
+// ---------------------------
 
+document.getElementById("copyReportBtn").addEventListener("click", async () => {
     const report = `
 VeriNews AI Report
 
@@ -491,9 +479,6 @@ ${document.getElementById("analysisDate").textContent}
     btn.textContent = "Copied ✓";
 
     setTimeout(() => {
-
         btn.textContent = "Copy Report";
-
     }, 1800);
-
 });
