@@ -1,10 +1,6 @@
 import os
 import re
-import requests
-import urllib.parse
-import urllib.request
-import json
-
+from gradio_client import Client
 from dotenv import load_dotenv
 
 load_dotenv(".env", override=True)
@@ -42,9 +38,10 @@ def build_claim_results(claims: list[str]) -> list[dict]:
     ]
 
 def search_evidence(claim: str) -> list[dict]:
-    from gradio_client import Client
-
-    client = Client("RYancoder/verisearch-api")
+    client = Client(
+        "RYancoder/verisearch-api",
+        token=os.getenv("HF_TOKEN"),
+    )
 
     results = client.predict(
         query=claim,
